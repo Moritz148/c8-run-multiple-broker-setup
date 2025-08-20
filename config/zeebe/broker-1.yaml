@@ -1,0 +1,41 @@
+zeebe:
+  broker:
+    gateway:
+      enable: false
+
+    network:
+      advertisedHost: zeebe1
+      commandApi:
+        port: 26501
+      internalApi:
+        port: 26502
+      monitoringApi:
+        port: 9600
+
+    cluster:
+      clusterSize: 3
+      partitionsCount: 3
+      replicationFactor: 3
+      nodeId: 1
+      initialContactPoints:
+        - zeebe0:26502
+        - zeebe1:26502
+        - zeebe2:26502
+
+    data:
+      snapshotPeriod: 30m
+
+    threads:
+      cpuThreadCount: 2
+      ioThreadCount: 2
+
+    exporters:
+      elasticsearch:
+        className: io.camunda.zeebe.exporter.ElasticsearchExporter
+        args:
+          url: http://elasticsearch:9200
+          index:
+            prefix: zeebe-record
+          bulk:
+            size: 1000
+          delay: 1s
