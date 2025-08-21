@@ -11,8 +11,38 @@
 
 services:
 
+  measurements-app:
+    image: moritz148/c8run-3broker:new   # <- dein Image von Docker Hub
+    environment:
+      - CAMUNDA_CLIENT_MODE=self-managed
+      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=grpc://zeebe-gateway:26500
+      - CAMUNDA_CLIENT_ZEEBE_SECURITY_PLAINTEXT=true
+      - SPRING_MAIN_WEB_APPLICATION_TYPE=none
+      - CAMUNDA_CLIENT_ZEEBE_REQUEST_TIMEOUT=PT2M
+      - CAMUNDA_CLIENT_WORKER_MAX_JOBS_ACTIVE=32
+      - CAMUNDA_CLIENT_WORKER_POLL_INTERVAL=PT0.1S
+      - CAMUNDA_CLIENT_WORKER_REQUEST_TIMEOUT=PT60S
+      - CAMUNDA_CLIENT_WORKER_TIMEOUT=PT5M #<- z.B. 30s
+      - LOGGING_LEVEL_ROOT=INFO
+      - ZEEBE_CLIENT_SECURITY_PLAINTEXT=true
+      - ZEEBE_CLIENT_CLOUD_ENABLED=false
+      - LOGGING_LEVEL_IO_CAMUNDA_ZEEBE_CLIENT_IMPL=ERROR
+      # Gateway im Compose-Netz
+      # - JAVA_OPTS=-Xms256m -Xmx256m        # optional
+    depends_on:
+      zeebe-gateway:
+        condition: service_healthy
+    restart: "no"                            # wichtig: App beendet sich nach Run -> nicht endlos neustarten
+    networks:
+      - camunda-platform
+    # optional: kleiner Healthcheck auf den Gateway-Port, bevor die App startet (wenn im Image nicht schon enthalten)
+    healthcheck:
+      test: [ "CMD-SHELL", "exit 0" ]          # App ist kurzlebig; kein echter Healthcheck nötig
+
+
   elasticsearch: # https://hub.docker.com/_/elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
+#    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.8
     container_name: elasticsearch
     ports:
       - "9200:9200"
@@ -43,7 +73,8 @@ services:
 
   # Zeebe Brokers (no embedded Gateway)
   zeebe0: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
-    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+#    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
     container_name: zeebe0
     volumes:
       - ./config/zeebe/broker-0.yaml:/usr/local/zeebe/config/application.yaml:ro
@@ -94,7 +125,8 @@ services:
       - camunda-platform
 
   zeebe1: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
-    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+#    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
     container_name: zeebe1
     environment:
       - ZEEBE_LOG_LEVEL=info
@@ -145,7 +177,8 @@ services:
       - camunda-platform
 
   zeebe2: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
-    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+#    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
     container_name: zeebe2
     environment:
       - ZEEBE_LOG_LEVEL=info
@@ -197,7 +230,8 @@ services:
 
 # Standalone Zeebe Gateway
   zeebe-gateway:
-    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+#    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
     container_name: zeebe-gateway
     command: ["/usr/local/bin/startup.sh", "--", "gateway"]
     volumes:
@@ -224,7 +258,8 @@ services:
       - camunda-platform
 
   operate: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#operate
-    image: camunda/operate:${CAMUNDA_OPERATE_VERSION}
+#    image: camunda/operate:${CAMUNDA_OPERATE_VERSION}
+    image: camunda/operate:8.7.8
     container_name: operate
     ports:
       - "8081:8080"
@@ -252,7 +287,8 @@ services:
         condition: service_healthy
 
   tasklist: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#tasklist
-    image: camunda/tasklist:${CAMUNDA_TASKLIST_VERSION}
+#    image: camunda/tasklist:${CAMUNDA_TASKLIST_VERSION}
+    image: camunda/tasklist:8.7.8
     container_name: tasklist
     ports:
       - "8082:8080"
@@ -280,13 +316,14 @@ services:
         condition: service_healthy
 
   connectors: # https://docs.camunda.io/docs/components/integration-framework/connectors/out-of-the-box-connectors/available-connectors-overview/
-    image: camunda/connectors-bundle:${CAMUNDA_CONNECTORS_VERSION}
+#    image: camunda/connectors-bundle:${CAMUNDA_CONNECTORS_VERSION}
+    image: camunda/connectors-bundle:8.7.6
     container_name: connectors
     ports:
       - "8085:8080"
     environment:
       - CAMUNDA_CLIENT_MODE=self-managed
-      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe-gateway:26500
+      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=grpc://zeebe-gateway:26500
       - OPERATE_CLIENT_BASEURL=http://operate:8080
       - OPERATE_CLIENT_PROFILE=simple
       - management.endpoints.web.exposure.include=health

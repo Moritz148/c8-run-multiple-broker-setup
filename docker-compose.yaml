@@ -11,6 +11,23 @@
 
 services:
 
+  measurements-app:
+    image: moritz148/c8run-test:new
+    environment:
+      - CAMUNDA_CLIENT_MODE=self-managed
+      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe:26500    # siehe Punkt 2 unten
+      - CAMUNDA_CLIENT_ZEEBE_RESTADDRESS=http://zeebe:8080
+      - CAMUNDA_CLIENT_AUTH_ISSUER=http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/token
+      - CAMUNDA_CLIENT_AUTH_CLIENTID=${ZEEBE_CLIENT_ID}
+      - CAMUNDA_CLIENT_AUTH_CLIENTSECRET=${ZEEBE_CLIENT_SECRET}
+      - CAMUNDA_CLIENT_ZEEBE_AUDIENCE=zeebe-api
+    depends_on:
+      zeebe:
+        condition: service_healthy
+    restart: "no"                            # wichtig: App beendet sich nach Run -> nicht endlos neustarten
+    networks:
+      - camunda-platform
+
   zeebe: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
     image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
     container_name: zeebe

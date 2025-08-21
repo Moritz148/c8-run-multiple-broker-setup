@@ -13,6 +13,7 @@ zeebe:
         port: 9600
 
     cluster:
+      clusterName: zeebe-cluster
       clusterSize: 3
       partitionsCount: 3
       replicationFactor: 3
@@ -26,8 +27,8 @@ zeebe:
       snapshotPeriod: 30m
 
     threads:
-      cpuThreadCount: 2
-      ioThreadCount: 2
+      cpuThreadCount: 4
+      ioThreadCount: 4
 
     exporters:
       elasticsearch:
@@ -37,5 +38,5 @@ zeebe:
           index:
             prefix: zeebe-record
           bulk:
-            size: 1000
-          delay: 1s
+            size: 1
+          delay: 2s
