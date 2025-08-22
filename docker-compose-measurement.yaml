@@ -121,7 +121,7 @@ services:
       - ./config/zeebe/gateway.yaml:/usr/local/zeebe/config/application.yaml:ro
     ports:
       - "26500:26500"   #gRPC for Clients
-      - "9600:9600"     #monitoring/health of gateway
+#      - "9600:9600"     #monitoring/health of gateway
     environment:
       - ZEEBE_STANDALONE_GATEWAY=true
       - ZEEBE_LOG_LEVEL=info
