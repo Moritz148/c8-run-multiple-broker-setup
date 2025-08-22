@@ -34,7 +34,7 @@ services:
     container_name: zeebe0
     volumes:
       - ./config/zeebe/broker-0.yaml:/usr/local/zeebe/config/application.yaml:ro
-      - ./data/zeebe0:/usr/local/zeebe/data
+      - zeebe0:/usr/local/zeebe/data
     environment:
       - ZEEBE_LOG_LEVEL=info
       - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
@@ -78,8 +78,8 @@ services:
     depends_on:
       - zeebe0
     volumes:
-      - ./config/zeebe/broker-0.yaml:/usr/local/zeebe/config/application.yaml:ro
-      - ./data/zeebe1:/usr/local/zeebe/data
+      - ./config/zeebe/broker-1.yaml:/usr/local/zeebe/config/application.yaml:ro
+      - zeebe1:/usr/local/zeebe/data
     networks:
       - camunda-platform
 
@@ -107,7 +107,7 @@ services:
       - zeebe1
     volumes:
       - ./config/zeebe/broker-2.yaml:/usr/local/zeebe/config/application.yaml:ro
-      - ./data/zeebe2:/usr/local/zeebe/data
+      - zeebe2:/usr/local/zeebe/data
     networks:
       - camunda-platform
 
@@ -136,6 +136,12 @@ services:
       - zeebe2
     networks:
       - camunda-platform
+
+volumes:
+  zeebe0:
+  zeebe1:
+  zeebe2:
+  elastic:
 
 networks:
   camunda-platform:
