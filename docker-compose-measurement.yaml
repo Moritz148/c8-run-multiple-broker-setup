@@ -1,0 +1,147 @@
+# Docker Compose von BA mit mehreren Brokern und einem Standalone Gateway
+
+# 13:09:10.007 Prozessinstanz #1 gestartet
+# 13:10:27.385 Prozessinstanz #100 beendet
+
+#13:13:49.260 Prozessinstanz #1 gestartet
+#13:14:48.530 Prozessinstanz #100 beendet
+
+
+
+services:
+
+  measurements-app:
+    image: moritz148/c8-3broker:new
+    environment:
+      - CAMUNDA_CLIENT_MODE=self-managed
+      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe-gateway:26500
+      # Falls du das Zeebe REST Gateway aktiv und gemappt hast, dann:
+      # - CAMUNDA_CLIENT_ZEEBE_RESTADDRESS=http://zeebe-gateway:8080
+      - LOGGING_LEVEL_ROOT=INFO
+      - ZEEBE_CLIENT_SECURITY_PLAINTEXT=true
+      - ZEEBE_CLIENT_CLOUD_ENABLED=false
+      - LOGGING_LEVEL_IO_CAMUNDA_ZEEBE_CLIENT_IMPL=ERROR
+    depends_on:
+      zeebe-gateway:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - camunda-platform
+
+  zeebe0: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
+    #    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
+    container_name: zeebe0
+    volumes:
+      - ./config/zeebe/broker-0.yaml:/usr/local/zeebe/config/application.yaml:ro
+      - zeebe0:/usr/local/zeebe/data
+    environment:
+      - ZEEBE_LOG_LEVEL=info
+      - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
+    restart: unless-stopped
+    #    healthcheck:
+    #      test: [ "CMD-SHELL", "bash -lc 'echo > /dev/tcp/127.0.0.1/8080'" ]
+    #      interval: 15s
+    #      timeout: 5s
+    #      retries: 20
+    #      start_period: 120s
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+    networks:
+      - camunda-platform
+
+  zeebe1: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
+    #    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
+    container_name: zeebe1
+    environment:
+      - ZEEBE_LOG_LEVEL=info
+      - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
+    restart: unless-stopped
+    #    healthcheck:
+    #      test: [ "CMD-SHELL", "bash -lc 'echo > /dev/tcp/127.0.0.1/8080'" ]
+    #      interval: 15s
+    #      timeout: 5s
+    #      retries: 20
+    #      start_period: 120s
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9601' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+    depends_on:
+      - zeebe0
+    volumes:
+      - ./config/zeebe/broker-1.yaml:/usr/local/zeebe/config/application.yaml:ro
+      - zeebe1:/usr/local/zeebe/data
+    networks:
+      - camunda-platform
+
+  zeebe2: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
+    #    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
+    container_name: zeebe2
+    environment:
+      - ZEEBE_LOG_LEVEL=info
+      - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
+    restart: unless-stopped
+    #    healthcheck:
+    #      test: [ "CMD-SHELL", "bash -lc 'echo > /dev/tcp/127.0.0.1/8080'" ]
+    #      interval: 15s
+    #      timeout: 5s
+    #      retries: 20
+    #      start_period: 120s
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9602' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+    depends_on:
+      - zeebe1
+    volumes:
+      - ./config/zeebe/broker-2.yaml:/usr/local/zeebe/config/application.yaml:ro
+      - zeebe2:/usr/local/zeebe/data
+    networks:
+      - camunda-platform
+
+  # Standalone Zeebe Gateway
+  zeebe-gateway:
+    #    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
+    image: camunda/zeebe:8.7.8
+    container_name: zeebe-gateway
+    command: ["/usr/local/bin/startup.sh", "--", "gateway"]
+    volumes:
+      - ./config/zeebe/gateway.yaml:/usr/local/zeebe/config/application.yaml:ro
+    ports:
+      - "26500:26500"   #gRPC for Clients
+      - "9600:9600"     #monitoring/health of gateway
+    environment:
+      - ZEEBE_STANDALONE_GATEWAY=true
+      - ZEEBE_LOG_LEVEL=info
+      - ZEEBE_GATEWAY_MONITORING_ENABLED=true
+      - ZEEBE_GATEWAY_MONITORING_PORT=9600
+
+    healthcheck:
+      test: [ "CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1" ]
+    depends_on:
+      - zeebe0
+      - zeebe1
+      - zeebe2
+    networks:
+      - camunda-platform
+
+volumes:
+  zeebe0:
+  zeebe1:
+  zeebe2:
+  elastic:
+
+networks:
+  camunda-platform:

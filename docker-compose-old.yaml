@@ -1,0 +1,43 @@
+# gleiche Compose wie in BA
+
+# 13:03:41.638 Prozessinstanz #1 gestartet
+# 13:03:58.753 Prozessinstanz #100 beendet
+
+services:
+
+  zeebe: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
+    image: camunda/zeebe:8.6.9
+    container_name: zeebe
+    environment: # https://docs.camunda.io/docs/self-managed/zeebe-deployment/configuration/environment-variables/
+      - ZEEBE_BROKER_DATA_DISKUSAGECOMMANDWATERMARK=0.998
+      - ZEEBE_BROKER_DATA_DISKUSAGEREPLICATIONWATERMARK=0.999
+      - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - camunda-platform
+
+  my-process: # Dein Prozess-Service
+#    image: moritz148/camunda8experiment:benchmark # Hier das Image deiner JAR-Datei
+    image: moritz148/c8run-test:new
+    container_name: c8-experiment
+    environment:
+#      - ZEEBE_GATEWAY_ADDRESS=zeebe:26500  # Verbindung zur Zeebe-Engine
+      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe:26500
+      - LOGGING_LEVEL_ROOT=INFO
+      - ZEEBE_CLIENT_SECURITY_PLAINTEXT=true
+      - ZEEBE_CLIENT_CLOUD_ENABLED=false
+      - LOGGING_LEVEL_IO_CAMUNDA_ZEEBE_CLIENT_IMPL=ERROR
+    networks:
+      - camunda-platform  # Das gleiche Netzwerk wie Zeebe
+    depends_on:
+      zeebe:
+        condition: service_healthy
+
+networks:
+  camunda-platform:

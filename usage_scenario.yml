@@ -2,15 +2,15 @@ name: c8 measurement
 author: "Moritz Schwarz"
 description: "Starts up camunda 8 stack in Docker, deploys a bpmn model and starts an instance of it"
 
-compose-file: !include docker-compose.yaml
+compose-file: !include docker-compose-measurement.yaml
 
 services:
-  experiment2:
+  measurements-app:
     command: /bin/sh
 
 flow:
   - name: start C8
-    container: experiment2
+    container: measurements-app
     commands:
       - type: console
         command: java -jar measurement.jar

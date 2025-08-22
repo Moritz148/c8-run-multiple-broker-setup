@@ -10,7 +10,7 @@ zeebe:
       internalApi:
         port: 26502
       monitoringApi:
-        port: 9600
+        port: 9601
 
     cluster:
       clusterName: zeebe-cluster
@@ -25,10 +25,12 @@ zeebe:
 
     data:
       snapshotPeriod: 30m
+      diskUsageCommandWatermark: 0.998
+      diskUsageReplicationWatermark: 0.999
 
     threads:
-      cpuThreadCount: 4
-      ioThreadCount: 4
+      cpuThreadCount: 2
+      ioThreadCount: 2
 
     exporters:
       elasticsearch:
@@ -39,4 +41,4 @@ zeebe:
             prefix: zeebe-record
           bulk:
             size: 1
-          delay: 2s
+          delay: 1s

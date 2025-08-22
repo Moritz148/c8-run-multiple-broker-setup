@@ -11,7 +11,7 @@
 
 services:
 
-  measurements-app:
+  messung:
     image: moritz148/c8run-test:new
     environment:
       - CAMUNDA_CLIENT_MODE=self-managed
@@ -24,7 +24,7 @@ services:
     depends_on:
       zeebe:
         condition: service_healthy
-    restart: "unless-stopped"
+    restart: "no"
     networks:
       - camunda-platform
 

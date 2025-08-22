@@ -1,58 +1,73 @@
 package com.envite.gmt.measurements;
 
 import io.camunda.zeebe.spring.client.annotation.JobWorker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Worker {
+
+    private final static Logger LOG = LoggerFactory.getLogger(Worker.class);
+
     @JobWorker(type = "testing1")
     public void dummyWorker1() {
-        System.out.println("worker 1 fertig");
+//        System.out.println("worker 1 fertig");
+        LOG.info("worker 1 fertig");
     }
 
     @JobWorker(type = "testing2")
     public void dummyWorker2() {
-        System.out.println("worker 2 fertig");
+//        System.out.println("worker 2 fertig");
+        LOG.info("worker 2 fertig");
     }
 
     @JobWorker(type = "testing3")
     public void dummyWorker3() {
-        System.out.println("worker 3 fertig");
+//        System.out.println("worker 3 fertig");
+        LOG.info("worker 3 fertig");
     }
 
     @JobWorker(type = "testing4")
     public void dummyWorker4() {
-        System.out.println("worker 4 fertig");
+//        System.out.println("worker 4 fertig");
+        LOG.info("worker 4 fertig");
     }
 
     @JobWorker(type = "testing5")
     public void dummyWorker5() {
-        System.out.println("worker 5 fertig");
+//        System.out.println("worker 5 fertig");
+        LOG.info("worker 5 fertig");
     }
 
     @JobWorker(type = "testing6")
     public void dummyWorker6() {
-        System.out.println("worker 6 fertig");
+//        System.out.println("worker 6 fertig");
+        LOG.info("worker 6 fertig");
     }
 
     @JobWorker(type = "testing7")
     public void dummyWorker7() {
-        System.out.println("worker 7 fertig");
+//        System.out.println("worker 7 fertig");
+        LOG.info("worker 7 fertig");
     }
 
     @JobWorker(type = "testing8")
     public void dummyWorker8() {
-        System.out.println("worker 8 fertig");
+//        System.out.println("worker 8 fertig");
+        LOG.info("worker 8 fertig");
     }
 
     @JobWorker(type = "testing9")
     public void dummyWorker9() {
-        System.out.println("worker 9 fertig");
+//        System.out.println("worker 9 fertig");
+        LOG.info("worker 9 fertig");
     }
 
     @JobWorker(type = "testing10")
     public void dummyWorker10() {
-        System.out.println("worker 10 fertig");
+//        System.out.println("worker 10 fertig");
+        LOG.info("worker 10 fertig");
     }
 //    @JobWorker(type = "job1")
 //    public void w1(){
